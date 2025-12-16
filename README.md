@@ -17,3 +17,5 @@ git clone https://github.com/guevaraStian/Dashboards_Iterativos.git
 cd Dashboards_Iterativos
 git push origin master
 ```
+
+Luego de haber descargado los archivos, se procede a descargar librerias y ejecutar el proyecto
