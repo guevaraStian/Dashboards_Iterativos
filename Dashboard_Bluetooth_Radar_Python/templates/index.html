@@ -69,7 +69,16 @@ function updateDashboard() {
     fetch("/api/devices")
         .then(res => res.json())
         .then(devices => {
+
+            /* 🔽 ORDENAR POR DISTANCIA (más cercana → más lejana) */
+            devices.sort((a, b) => {
+                if (a.distance == null) return 1;
+                if (b.distance == null) return -1;
+                return a.distance - b.distance;
+            });
+
             currentDevices = devices;
+
             const table = document.getElementById("table");
             table.innerHTML = "";
 
@@ -134,7 +143,7 @@ function updateDashboard() {
 updateDashboard();
 setInterval(updateDashboard, 10000);
 
-/*  PDF */
+/* 📄 PDF */
 function downloadPDF() {
     html2canvas(document.getElementById("capture")).then(canvas => {
         const img = canvas.toDataURL("image/png");
@@ -146,7 +155,7 @@ function downloadPDF() {
     });
 }
 
-/*  Excel */
+/* 📊 Excel */
 function downloadExcel() {
     const wsData = [
         ["#", "MAC", "Nombre", "Distancia (m)"]
