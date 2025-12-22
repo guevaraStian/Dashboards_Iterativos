@@ -1,3 +1,9 @@
+# En el siguiente codigo se muestra un software que le pide
+# a una API la informacion de las loterias mas recientes
+# Luego filtra un año en especifico y crea un dashboar
+# con IA para el pronostico del siguiente numero y dashboar
+# Con los datos recogidos, primero se instalan librerias
+# pip install pandas dash sklearn
 import pandas as pd
 import requests
 from datetime import datetime, timedelta
