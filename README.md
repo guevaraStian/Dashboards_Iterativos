@@ -1,6 +1,6 @@
 
 <h1 style="font-size: 3em; color: #FF0000;">• DASHBOARDS ITERATIVOS </h1>
-<h2 style="font-size: 3em; color: #FF0000;">RADAR, PROBABILIDADES EN LOTERIA, FUTBOL Y CRIMENES </h2>
+<h2 style="font-size: 3em; color: #FF0000;">RADAR Y TAMBIEN PROBABILIDADES EN LOTERIA, FUTBOL Y CRIMENES </h2>
 
 
 
