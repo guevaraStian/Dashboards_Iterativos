@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Radar Bluetooth BLE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="/static/style.css">
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<!-- Exportación -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+
+<body>
+
+<h1> Radar Bluetooth BLE con MAPA</h1>
+<div id="clock"></div>
+
+<!-- FORMULARIO DE COORDENADAS -->
+<form method="POST" class="coords-form">
+    <input type="number" step="any" name="lat" placeholder="Latitud" required>
+    <input type="number" step="any" name="lon" placeholder="Longitud" required>
+    <button type="submit">📍 Iniciar Radar</button>
+</form>
+
+<div class="container" id="capture">
+
+    <!-- TABLA -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>MAC</th>
+                    <th>Nombre</th>
+                    <th>Distancia (m)</th>
+                    <th>Latitud</th>
+                    <th>Longitud</th>
+                </tr>
+            </thead>
+            <tbody id="table"></tbody>
+        </table>
+    </div>
+
+    <!-- MAPA -->
+    <div id="map"></div>
+
+    <!-- RADAR -->
+    <div class="chart-container">
+        <canvas id="radar"></canvas>
+    </div>
+
+</div>
+
+<div class="buttons">
+    <button onclick="downloadPDF()">📄 Descargar PDF</button>
+    <button onclick="downloadExcel()">📊 Descargar Excel</button>
+</div>
+
+<script>
+let radarChart;
+let currentDevices = [];
+let map;
+let markers = [];
+
+/*  Reloj */
+function updateClock() {
+    const now = new Date();
+    document.getElementById("clock").innerText =
+        now.toLocaleDateString() + " " + now.toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/*  Mapa */
+function initMap(lat, lon) {
+    map = L.map("map").setView([lat, lon], 18);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+    L.marker([lat, lon])
+        .addTo(map)
+        .bindPopup("📍 Dispositivo Creador")
+        .openPopup();
+}
+
+function updateMap(devices) {
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    devices.forEach(d => {
+        if (d.lat && d.lon) {
+            const m = L.circleMarker([d.lat, d.lon], {
+                radius: 6,
+                color: "red"
+            })
+            .addTo(map)
+            .bindPopup(`${d.name}<br>${d.distance} m`);
+            markers.push(m);
+        }
+    });
+}
+
+/* Dashboard */
+function updateDashboard() {
+    fetch("/api/devices")
+        .then(res => res.json())
+        .then(devices => {
+
+            devices.sort((a, b) => {
+                if (a.distance == null) return 1;
+                if (b.distance == null) return -1;
+                return a.distance - b.distance;
+            });
+
+            currentDevices = devices;
+            const table = document.getElementById("table");
+            table.innerHTML = "";
+
+            const labels = [];
+            const data = [];
+            const meta = [];
+
+            devices.forEach((d, i) => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${d.mac}</td>
+                        <td>${d.name}</td>
+                        <td>${d.distance ?? "-"}</td>
+                        <td>${d.lat ?? "-"}</td>
+                        <td>${d.lon ?? "-"}</td>
+                    </tr>`;
+
+                if (d.distance !== null) {
+                    labels.push(d.mac);
+                    data.push(Math.max(0.1, 10 - d.distance));
+                    meta.push(`${d.mac}\n${d.distance} m`);
+                }
+            });
+
+            if (devices.length && devices[0].lat && !map) {
+                initMap(devices[0].lat, devices[0].lon);
+            }
+            if (map) updateMap(devices);
+
+            if (radarChart) radarChart.destroy();
+
+            radarChart = new Chart(document.getElementById("radar"), {
+                type: "radar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: "rgba(255,0,0,0.25)",
+                        borderColor: "red",
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: "red",
+                            formatter: (v, ctx) => meta[ctx.dataIndex]
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        });
+}
+
+updateDashboard();
+setInterval(updateDashboard, 10000);
+
+/* PDF */
+function downloadPDF() {
+    html2canvas(document.getElementById("capture")).then(canvas => {
+        const pdf = new jspdf.jsPDF("p", "mm", "a4");
+        const img = canvas.toDataURL("image/png");
+        pdf.addImage(img, "PNG", 10, 10, 190, 0);
+        pdf.save("ble_radar.pdf");
+    });
+}
+
+/* Excel */
+function downloadExcel() {
+    const data = [["#", "MAC", "Nombre", "Distancia", "Lat", "Lon"]];
+    currentDevices.forEach((d, i) => {
+        data.push([i+1, d.mac, d.name, d.distance, d.lat, d.lon]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "BLE");
+    XLSX.writeFile(wb, "ble_radar.xlsx");
+}
+</script>
+
+</body>
+</html>

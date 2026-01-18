@@ -1,0 +1,89 @@
+body {
+    margin: 0;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+    background: black;
+    color: white;
+}
+
+h1 {
+    text-align: center;
+    color: red;
+}
+
+#clock {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.coords-form {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.coords-form input {
+    padding: 8px;
+    width: 140px;
+    margin: 5px;
+}
+
+.coords-form button {
+    padding: 8px 15px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #444;
+}
+
+th {
+    background: red;
+    color: black;
+    padding: 10px;
+}
+
+td {
+    padding: 8px;
+    border: 1px solid #666;
+}
+
+#map {
+    height: 350px;
+    width: 100%;
+    border: 2px solid red;
+    border-radius: 10px;
+}
+
+canvas {
+    background: black;
+    border: 2px solid red;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.buttons {
+    text-align: center;
+    margin-top: 20px;
+}
+
+button {
+    background: red;
+    color: black;
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #ff5555;
+}
