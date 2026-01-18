@@ -47,4 +47,4 @@ Luego que el proyecto ya se este ejecutando, podemos verlo funcionar en la sigui
 http://localhost:5000
 http://127.0.0.1:5000
 ```
-
+![Radar Wifi](images/Imagen_Radar_Wifi.png)
